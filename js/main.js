@@ -2,60 +2,71 @@ const compose = (...functions) => data =>
   functions.reduceRight((value, func) => func(value), data)
 
 const attrsToString = (obj = {}) => {
-  const keys = Object.keys(obj);
-  const attrs = [];
+  const keys = Object.keys(obj)
+  const attrs = []
 
-  for(let i = 0; i < keys.length; i++) {
+  for (let i = 0; i < keys.length; i++) {
     let attr = keys[i]
-    attrs.push(`${attr}="${obj[attr]}"`)
+    attrs.push(`${attr}=“${obj[attr]}"`)
   }
-  const string = attrs.join();
-  return string;
+
+  const string = attrs.join(' ')
+
+  return string
 }
 
-const tagAttrs = obj => (content = '') => 
-  `<${obj.tag}${obj.attrs ? ' ' : ''}${attrsToString(obj.attrs)}>${content}</${obj.tag}>`
+const tagAttrs = obj => (content = '') =>
+  `<${obj.tag}${obj.attrs ? ' ' :	 ''}${attrsToString(obj.attrs)}>${content}</${obj.tag}>`
 
 const tag = t => {
-  if (typeof t === 'string') {
-    tagAttrs({ tag: t})
-  } else {
-    tagAttrs(t)
+  if(typeof t === 'string') {
+    return tagAttrs({ tag: t })
   }
+  return tagAttrs(t)
 }
 
-let description = $('#description');
-let carbs = $('#carbs');
-let calories = $('#calories');
-let protein = $('#protein');
+const tableRowTag = tag('tr')
+const tableRow = items => compose(tableRowTag, tableCells)(items)
 
-let list = [];
+const tableCell = tag('td')
+const tableCells = items => items.map(tableCell).join('')
+
+let description = $('#description')
+let calories = $('#calories')
+let carbs = $('#carbs')
+let protein = $('#protein')
+
+let list = []
 
 description.keypress(() => {
-  description.val() ? '' : description.removeClass('is-invalid');
+  description.removeClass('is-invalid')
 })
 
 calories.keypress(() => {
-  calories.val() ? '' : calories.removeClass('is-invalid');
+  calories.removeClass('is-invalid')
 })
 
 carbs.keypress(() => {
-  carbs.val() ? '' : carbs.removeClass('is-invalid');
+  carbs.removeClass('is-invalid')
 })
 
 protein.keypress(() => {
-  protein.val() ? '' : protein.removeClass('is-invalid');
+  protein.removeClass('is-invalid')
 })
 
-let validateInputs = () => {
-  description.val() ? '' : description.addClass('is-invalid');
-  calories.val() ? '' : calories.addClass('is-invalid');
-  carbs.val() ? '' : carbs.addClass('is-invalid');
-  protein.val() ? '' : protein.addClass('is-invalid');
+const validateInputs = () => {
 
-  if (description.val() && calories.val() && carbs.val() && protein.val()) {
-    add();
-  }
+  description.val() ? '' : description.addClass('is-invalid')
+  calories.val() ? '' : calories.addClass('is-invalid')
+  carbs.val() ? '' : carbs.addClass('is-invalid')
+  protein.val() ? '' : protein.addClass('is-invalid')
+
+  if(
+    description.val() &&
+    calories.val() &&
+    carbs.val() &&
+    protein.val()
+  ) add()
 }
 
 const add = () => {
@@ -66,9 +77,24 @@ const add = () => {
     protein: parseInt(protein.val())
   }
 
-  list.push(newItem);
-  cleanInputs();
-  console.log(list);
+  list.push(newItem)
+  updateTotals()
+  cleanInputs()
+  renderItems()
+}
+
+const updateTotals = () => {
+  let calories = 0, carbs = 0, protein = 0
+
+  list.map(item => {
+    calories += item.calories,
+    carbs += item.carbs,
+    protein += item.protein
+  })
+
+  $('#totalCalories').text(calories)
+  $('#totalCarbs').text(carbs)
+  $('#totalProtein').text(protein)
 }
 
 const cleanInputs = () => {
@@ -76,4 +102,12 @@ const cleanInputs = () => {
   calories.val('')
   carbs.val('')
   protein.val('')
+}
+
+const renderItems = () => {
+  $('tbody').empty()
+
+  list.map(item => {
+    $('tbody').append(tableRow([item.description, item.calories, item.carbs, item.protein]))
+  })
 }
